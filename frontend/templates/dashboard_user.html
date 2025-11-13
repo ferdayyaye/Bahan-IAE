@@ -1,0 +1,108 @@
+{% extends 'layout_user.html' %}
+
+{% block content %}
+<div class="user-dashboard">
+  <div class="profile-card">
+    <h4>Hello, {{ user.full_name }}</h4>
+    <div class="profile-info">
+      <p><strong>Email:</strong> {{ user.email }}</p>
+      <p><strong>Role:</strong> User</p>
+    </div>
+
+    <div class="balance-box">
+      💰 Balance:
+      <span id="balance-text">
+        Rp {{ "{:,.0f}".format(user.balance if user.balance else 0) }}
+      </span>
+    </div>
+
+    <div class="action-buttons">
+      <button class="btn-action btn-topup" onclick="openTopupModal()">💵 Top Up</button>
+      <button class="btn-action btn-transaction" onclick="openTransactionModal()">💳 New Transaction</button>
+    </div>
+  </div>
+
+  <div class="transactions mt-4">
+    <h5>Your Recent Transactions</h5>
+    <div class="table-responsive">
+      <table class="table table-striped align-middle">
+        <thead class="table-light">
+          <tr>
+            <th>ID</th>
+            <th>Type</th>
+            <th>Amount</th>
+            <th>Date</th>
+          </tr>
+        </thead>
+        <tbody id="transaction-table-body">
+          {% if transactions %}
+            {% for t in transactions %}
+              <tr>
+                <td>{{ t.id }}</td>
+                <td>{{ t.type|capitalize }}</td>
+                <td>Rp {{ "{:,.0f}".format(t.amount) }}</td>
+                <td>{{ t.created_at if t.created_at else '—' }}</td>
+              </tr>
+            {% endfor %}
+          {% else %}
+            <tr>
+              <td colspan="4" class="text-muted text-center py-4">
+                No transactions yet.
+              </td>
+            </tr>
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ✅ Toast -->
+<div class="toast-container position-fixed bottom-0 end-0 p-3">
+  <div id="liveToast" class="toast align-items-center text-bg-success border-0" role="alert" aria-live="assertive">
+    <div class="d-flex">
+      <div class="toast-body" id="toast-message">✅ Success!</div>
+      <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+    </div>
+  </div>
+</div>
+
+<!-- 💵 Topup Modal -->
+<div class="modal fade" id="topupModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content p-4">
+      <h5 class="mb-3">Top Up Balance</h5>
+      <form id="topupForm" onsubmit="submitTopup(event)">
+        <div class="mb-3">
+          <label class="fw-semibold">Amount (Rp)</label>
+          <input type="number" name="amount" class="form-control" min="1000" required />
+        </div>
+        <button type="submit" class="btn btn-primary w-100">Confirm</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- 💳 Transaction Modal -->
+<div class="modal fade" id="transactionModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content p-4">
+      <h5 class="mb-3">Create New Transaction</h5>
+      <form id="transactionForm" onsubmit="submitTransaction(event)">
+        <div class="mb-3">
+          <label class="fw-semibold">Type</label>
+          <select name="type" class="form-select" required>
+            <option value="debit">Debit</option>
+            <option value="credit">Credit</option>
+          </select>
+        </div>
+        <div class="mb-3">
+          <label class="fw-semibold">Amount (Rp)</label>
+          <input type="number" name="amount" class="form-control" min="1000" required />
+        </div>
+        <button type="submit" class="btn btn-primary w-100">Create</button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

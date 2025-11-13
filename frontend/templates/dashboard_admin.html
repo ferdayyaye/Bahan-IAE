@@ -1,0 +1,863 @@
+{% extends 'layout_admin.html' %} {% block content %}
+<style>
+  body {
+    background-color: #f8fafc;
+    font-family: "Inter", sans-serif;
+  }
+  .dashboard {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2rem;
+    padding: 2.5rem 2rem;
+  }
+  .profile-card {
+    background: #ffffff;
+    border-radius: 16px;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+    flex: 0 0 320px;
+    padding: 1.8rem;
+    position: sticky;
+    top: 100px;
+  }
+  .profile-card h5 {
+    font-size: 1.2rem;
+    border-bottom: 3px solid #2563eb;
+    padding-bottom: 0.6rem;
+    color: #1f2937;
+    margin-bottom: 1rem;
+    font-weight: 700;
+  }
+  .profile-info p {
+    margin: 0.4rem 0;
+    font-size: 0.95rem;
+    color: #374151;
+  }
+  .status-badge {
+    display: inline-block;
+    background-color: #10b981;
+    color: white;
+    padding: 0.35rem 0.9rem;
+    border-radius: 14px;
+    font-size: 0.85rem;
+    font-weight: 600;
+  }
+  .main-content {
+    flex: 1;
+    min-width: 600px;
+  }
+  .dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+  }
+  .dashboard-header h4 {
+    font-weight: 700;
+    color: #1e293b;
+  }
+  .btn-refresh {
+    background-color: #2563eb;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 0.6rem 1.3rem;
+    font-weight: 500;
+    transition: 0.25s;
+  }
+  .btn-refresh:hover {
+    background-color: #1d4ed8;
+  }
+  .text-muted {
+    font-size: 0.95rem;
+    color: #6b7280 !important;
+  }
+  .summary-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+  }
+  .card-summary {
+    background: #ffffff;
+    border-radius: 14px;
+    box-shadow: 0 3px 12px rgba(0, 0, 0, 0.05);
+    padding: 1.5rem 1rem;
+    text-align: center;
+    transition: all 0.3s ease;
+  }
+  .card-summary:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0.1);
+  }
+  .card-summary h6 {
+    color: #6b7280;
+    font-size: 0.95rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+  }
+  .card-summary h3 {
+    color: #2563eb;
+    font-weight: 800;
+    font-size: 1.8rem;
+    margin-bottom: 0.3rem;
+  }
+  .card-summary small {
+    color: #9ca3af;
+    font-size: 0.9rem;
+  }
+  .section-title {
+    font-weight: 700;
+    color: #1e293b;
+    margin: 2rem 0 1rem;
+    font-size: 1.1rem;
+  }
+  .service-box {
+    background: #f9fafb;
+    border-radius: 12px;
+    padding: 0.9rem 1.3rem;
+    border-left: 5px solid #10b981;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.9rem;
+    font-weight: 500;
+    transition: 0.3s ease;
+  }
+  .service-box:hover {
+    background: #f1f5f9;
+  }
+  .admin-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.8rem;
+    margin-bottom: 1.5rem;
+  }
+  .crud-btn {
+    border: none;
+    border-radius: 8px;
+    padding: 0.6rem 1rem;
+    color: white;
+    font-weight: 500;
+    transition: 0.2s;
+  }
+  .crud-btn.add {
+    background-color: #2563eb;
+  }
+  .crud-btn.edit {
+    background-color: #3b82f6;
+  }
+  .crud-btn.delete {
+    background-color: #ef4444;
+  }
+  .crud-btn:hover {
+    opacity: 0.85;
+    transform: translateY(-2px);
+  }
+  .table-section {
+    margin-top: 1.5rem;
+  }
+  table {
+    font-size: 0.95rem;
+    border-radius: 12px !important;
+    overflow: hidden;
+  }
+  thead {
+    background-color: #f1f5f9;
+    color: #1e293b;
+    font-weight: 600;
+  }
+  tbody tr:hover {
+    background-color: #f9fafb;
+  }
+</style>
+
+<div class="dashboard">
+  <!-- Profile Card -->
+  <div class="profile-card">
+    <h5>👤 User Profile</h5>
+    <div class="profile-info">
+      <p>
+        <strong>ID:</strong> {{ session.user.id if session.user else 'N/A' }}
+      </p>
+      <p>
+        <strong>Name:</strong> {{ session.user.full_name if session.user else
+        '-' }}
+      </p>
+      <p>
+        <strong>Email:</strong> {{ session.user.email if session.user else '-'
+        }}
+      </p>
+      <p>
+        <strong>Role:</strong>
+        <span class="badge bg-primary"
+          >{{ session.user.role if session.user and session.user.role else
+          'User' }}</span
+        >
+      </p>
+      <p>
+        <strong>Status:</strong> <span class="status-badge">Healthy ✓</span>
+      </p>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="main-content">
+    <!-- Header -->
+    <div class="dashboard-header">
+      <h4>📊 Admin Dashboard</h4>
+      <button class="btn-refresh" onclick="location.reload()">
+        🔄 Refresh
+      </button>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="summary-row">
+      <div class="card-summary">
+        <h6>Total Users</h6>
+        <h3>{{ users|length }}</h3>
+        <small>{{ users|length }} pengguna terdaftar</small>
+      </div>
+      <div class="card-summary">
+        <h6>Transactions</h6>
+        <h3>{{ transactions|length }}</h3>
+        <small>{{ transactions|length }} transaksi</small>
+      </div>
+      <div class="card-summary">
+        <h6>Notifications</h6>
+        <h3>{{ notifications|length }}</h3>
+        <small>{{ notifications|length }} notifikasi dikirim</small>
+      </div>
+      <div class="card-summary">
+        <h6>Reports</h6>
+        <h3>{{ reports|length }}</h3>
+        <small>{{ reports|length }} laporan dibuat</small>
+      </div>
+    </div>
+
+    <!-- Gateway & Service Health -->
+    <h5 class="section-title">🔗 Gateway & Service Health</h5>
+    <div class="service-box">
+      User Service <span class="badge bg-success">Healthy</span>
+    </div>
+    <div class="service-box">
+      Transaction Service <span class="badge bg-success">Healthy</span>
+    </div>
+    <div class="service-box">
+      Notification Service <span class="badge bg-success">Healthy</span>
+    </div>
+    <div class="service-box">
+      Report Service <span class="badge bg-success">Healthy</span>
+    </div>
+
+    <!-- Admin Actions -->
+    <h5 class="section-title">⚙️ Admin Management</h5>
+    <div class="admin-actions">
+      <button class="crud-btn add" onclick="openModal('addUserModal')">
+        + Add User
+      </button>
+      <button class="crud-btn add" onclick="openModal('addTransactionModal')">
+        + Add Transaction
+      </button>
+      <button class="crud-btn add" onclick="openModal('addNotificationModal')">
+        + Add Notification
+      </button>
+      <button class="crud-btn add" onclick="openModal('addReportModal')">
+        + Add Report
+      </button>
+    </div>
+
+    <!-- Users Table -->
+    <h5 class="section-title">👥 Recent Users</h5>
+    <div class="table-section">
+      <table class="table table-hover">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Full Name</th>
+            <th>Email</th>
+            <th>Balance</th>
+            <th>Role</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for u in users %}
+          <tr>
+            <td>{{ u.id }}</td>
+            <td>{{ u.full_name }}</td>
+            <td>{{ u.email }}</td>
+            <td><strong>Rp {{ "{:,.0f}".format(u.balance or 0) }}</strong></td>
+            <td><span class="badge bg-info">{{ u.role or 'user' }}</span></td>
+            <td>
+              <button
+                class="btn btn-sm btn-warning"
+                onclick="openEditModal({{ u.id }}, '{{ u.full_name }}', '{{ u.email }}')"
+              >
+                ✏️ Edit
+              </button>
+              <button
+                class="btn btn-sm btn-danger"
+                onclick="deleteUser({{ u.id }}, '{{ u.full_name }}')"
+              >
+                🗑️ Delete
+              </button>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== MODALS ===================== -->
+
+<!-- Add User Modal -->
+<div class="modal fade" id="addUserModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Add New User</h5>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+        ></button>
+      </div>
+      <form onsubmit="submitAddUser(event)">
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label">Full Name</label>
+            <input type="text" class="form-control" name="full_name" required />
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Email</label>
+            <input type="email" class="form-control" name="email" required />
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Password</label>
+            <input
+              type="password"
+              class="form-control"
+              name="password"
+              required
+            />
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button
+            type="button"
+            class="btn btn-secondary"
+            data-bs-dismiss="modal"
+          >
+            Cancel
+          </button>
+          <button type="submit" class="btn btn-primary">Add User</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Edit User Modal -->
+<div class="modal fade" id="editUserModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Edit User</h5>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+        ></button>
+      </div>
+      <form onsubmit="submitEditUser(event)">
+        <div class="modal-body">
+          <input type="hidden" id="editUserId" />
+          <div class="mb-3">
+            <label class="form-label">Full Name</label>
+            <input
+              type="text"
+              class="form-control"
+              id="editFullName"
+              required
+            />
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Email</label>
+            <input type="email" class="form-control" id="editEmail" required />
+          </div>
+          <!-- Removed Balance field -->
+          <!-- Removed Role field -->
+        </div>
+        <div class="modal-footer">
+          <button
+            type="button"
+            class="btn btn-secondary"
+            data-bs-dismiss="modal"
+          >
+            Cancel
+          </button>
+          <button type="submit" class="btn btn-primary">Save Changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Add Transaction Modal -->
+<div class="modal fade" id="addTransactionModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Add Transaction</h5>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+        ></button>
+      </div>
+      <form onsubmit="submitAddTransaction(event)">
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label">User ID</label>
+            <input type="number" class="form-control" name="user_id" required />
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Type</label>
+            <select class="form-control" name="type" required>
+              <option value="credit">Credit</option>
+              <option value="debit">Debit</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Amount (Rp)</label>
+            <input
+              type="number"
+              class="form-control"
+              name="amount"
+              step="0.01"
+              required
+            />
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button
+            type="button"
+            class="btn btn-secondary"
+            data-bs-dismiss="modal"
+          >
+            Cancel
+          </button>
+          <button type="submit" class="btn btn-primary">Add Transaction</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Add Notification Modal -->
+<!-- Add Notification Modal -->
+<div class="modal fade" id="addNotificationModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Add Notification</h5>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+        ></button>
+      </div>
+      <div class="modal-body">
+        <form id="addNotificationForm" onsubmit="submitAddNotification(event)">
+          <div class="mb-3">
+            <label for="notif_user_id" class="form-label">User ID</label>
+            <input
+              type="number"
+              id="notif_user_id"
+              name="user_id"
+              class="form-control"
+              required
+            />
+          </div>
+          <div class="mb-3">
+            <label for="notif_message" class="form-label">Message</label>
+            <textarea
+              id="notif_message"
+              name="message"
+              class="form-control"
+              rows="3"
+              required
+            ></textarea>
+          </div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              data-bs-dismiss="modal"
+            >
+              Cancel
+            </button>
+            <button type="submit" class="btn btn-primary">
+              Send Notification
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Add Report Modal -->
+<div class="modal fade" id="addReportModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Add Report</h5>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+        ></button>
+      </div>
+      <form onsubmit="submitAddReport(event)">
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label">User ID</label>
+            <input type="number" class="form-control" name="user_id" required />
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Description</label>
+            <textarea
+              class="form-control"
+              name="description"
+              rows="3"
+              required
+            ></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button
+            type="button"
+            class="btn btn-secondary"
+            data-bs-dismiss="modal"
+          >
+            Cancel
+          </button>
+          <button type="submit" class="btn btn-primary">Create Report</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<h5 class="section-title">📋 Reports</h5>
+<div class="admin-actions">
+  <button class="crud-btn add" onclick="syncReports()">
+    🔄 Sync All Reports
+  </button>
+</div>
+
+<div class="table-section">
+  <table class="table table-hover">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>User</th>
+        <th>Email</th>
+        <th>Transaction ID</th>
+        <th>Type</th>
+        <th>Amount</th>
+        <th>Status</th>
+        <th>Balance After</th>
+        <th>Transaction Date</th>
+      </tr>
+    </thead>
+    <tbody id="reportsTableBody">
+      {% for r in reports %}
+      <tr>
+        <td>{{ r.id }}</td>
+        <td>{{ r.full_name }}</td>
+        <td>{{ r.email }}</td>
+        <td>{{ r.transaction_id }}</td>
+        <td>{{ r.type }}</td>
+        <td>Rp {{ "{:,.2f}".format(r.amount) }}</td>
+        <td>{{ r.status }}</td>
+        <td>Rp {{ "{:,.2f}".format(r.balance_after) }}</td>
+        <td>{{ r.transaction_date[:19].replace("T"," ") }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<!-- JavaScript Functions -->
+<script>
+  function openModal(id) {
+    new bootstrap.Modal(document.getElementById(id)).show();
+  }
+
+  // MODIFIED: Only accepts userId, fullName, email
+  function openEditModal(userId, fullName, email) {
+    document.getElementById("editUserId").value = userId;
+    document.getElementById("editFullName").value = fullName;
+    document.getElementById("editEmail").value = email;
+    // Removed lines for balance and role
+    new bootstrap.Modal(document.getElementById("editUserModal")).show();
+  }
+
+  async function submitAddUser(e) {
+    e.preventDefault();
+    const form = e.target;
+    const payload = {
+      full_name: form.full_name.value.trim(),
+      email: form.email.value.trim(),
+      password: form.password.value,
+    };
+
+    try {
+      const res = await fetch("/users", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        alert(`✅ ${data.message || "User added successfully!"}`);
+        location.reload();
+      } else {
+        alert(`❌ ${data.error || "Failed to add user."}`);
+      }
+    } catch (err) {
+      alert(`❌ Error: ${err.message}`);
+    }
+    bootstrap.Modal.getInstance(document.getElementById("addUserModal")).hide();
+  }
+
+  async function submitEditUser(e) {
+    e.preventDefault();
+    const userId = document.getElementById("editUserId").value;
+    const payload = {
+      full_name: document.getElementById("editFullName").value.trim(),
+      email: document.getElementById("editEmail").value.trim(),
+      // Removed balance and role from payload
+    };
+
+    try {
+      const res = await fetch(`/users/${userId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        alert(`✅ User updated successfully!`);
+        location.reload();
+      } else {
+        alert(`❌ ${data.error || "Failed to update user."}`);
+      }
+    } catch (err) {
+      alert(`❌ Error: ${err.message}`);
+    }
+    bootstrap.Modal.getInstance(
+      document.getElementById("editUserModal")
+    ).hide();
+  }
+
+  async function deleteUser(userId, userName) {
+    if (
+      !confirm(
+        `⚠️ Are you sure you want to delete user "${userName}"? This action cannot be undone.`
+      )
+    ) {
+      return;
+    }
+
+    try {
+      const res = await fetch(`/users/${userId}`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+      });
+      const data = await res.json();
+      if (res.ok) {
+        alert(`✅ User deleted successfully!`);
+        location.reload();
+      } else {
+        alert(`❌ ${data.error || "Failed to delete user."}`);
+      }
+    } catch (err) {
+      alert(`❌ Error: ${err.message}`);
+    }
+  }
+
+  async function submitAddTransaction(e) {
+    e.preventDefault();
+    const form = e.target;
+
+    // ✅ Get values correctly
+    const userId = form.user_id.value.trim();
+    const type = form.type.value.trim();
+    const amount = form.amount.value.trim();
+
+    console.log("Submitting:", { userId, type, amount }); // Debug log
+
+    if (!userId || !type || !amount) {
+      alert("❌ Please fill in all fields");
+      return;
+    }
+
+    const payload = {
+      user_id: parseInt(userId),
+      type: type,
+      amount: parseFloat(amount),
+    };
+
+    try {
+      const res = await fetch("/transactions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      const contentType = res.headers.get("content-type");
+      if (!contentType || !contentType.includes("application/json")) {
+        const text = await res.text();
+        console.error("Non-JSON response:", text);
+        alert(`❌ Server error: ${res.status}`);
+        return;
+      }
+
+      const data = await res.json();
+
+      if (res.ok) {
+        alert(`✅ ${data.message || "Transaction added!"}`);
+        location.reload();
+      } else {
+        alert(`❌ ${data.error || "Failed to add transaction."}`);
+      }
+    } catch (err) {
+      alert(`❌ Error: ${err.message}`);
+    }
+
+    try {
+      bootstrap.Modal.getInstance(
+        document.getElementById("addTransactionModal")
+      ).hide();
+    } catch (e) {
+      // Modal doesn't exist
+    }
+  }
+
+  async function submitAddNotification(e) {
+    e.preventDefault();
+    const form = e.target;
+
+    const userId = document.getElementById("notif_user_id").value.trim();
+    const message = document.getElementById("notif_message").value.trim();
+
+    if (!userId || !message) {
+      alert("❌ Please fill in all fields");
+      return;
+    }
+
+    const payload = {
+      user_id: parseInt(userId),
+      message: message,
+    };
+
+    try {
+      const res = await fetch("/notifications", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      const contentType = res.headers.get("content-type");
+      if (!contentType || !contentType.includes("application/json")) {
+        alert(`❌ Server error: ${res.status}`);
+        return;
+      }
+
+      const data = await res.json();
+
+      if (res.ok) {
+        alert(`✅ ${data.message || "Notification sent successfully!"}`);
+        location.reload();
+      } else {
+        alert(`❌ ${data.error || "Failed to send notification."}`);
+      }
+    } catch (err) {
+      alert(`❌ Error: ${err.message}`);
+    }
+
+    try {
+      bootstrap.Modal.getInstance(
+        document.getElementById("addNotificationModal")
+      ).hide();
+    } catch (e) {
+      console.log("Modal close error:", e);
+    }
+  }
+
+  async function syncReports() {
+    if (!confirm("⚠️ Sync all reports from transaction_service?")) return;
+
+    try {
+      const res = await fetch("/sync/all", { method: "POST" });
+      const contentType = res.headers.get("content-type") || "";
+
+      if (!contentType.includes("application/json")) {
+        const text = await res.text();
+        console.error("Unexpected response:", text);
+        alert(`❌ Server did not return JSON (status ${res.status}).`);
+        return;
+      }
+
+      const data = await res.json();
+      if (res.ok) {
+        alert(
+          `✅ Sync complete! ${data.synced_reports} reports, ${data.synced_users} users.`
+        );
+        location.reload();
+      } else {
+        alert(`❌ Sync failed: ${data.error || "Unknown error"}`);
+      }
+    } catch (err) {
+      alert(`❌ Error: ${err.message}`);
+    }
+  }
+
+  async function syncAll() {
+    const res = await fetch("/sync/all", { method: "POST" });
+    const data = await res.json();
+
+    if (res.ok) {
+      alert(`✅ Sync complete: ${data.message || "Data refreshed"}`);
+      await loadReports(); // <--- tambahkan baris ini untuk refresh tabel
+    } else {
+      alert("❌ Sync failed");
+    }
+  }
+
+  async function loadReports() {
+    const res = await fetch("/reports");
+    const data = await res.json();
+    renderTable(data);
+  }
+
+  // Auto close flash messages after 4 seconds
+  setTimeout(() => {
+    document.querySelectorAll(".alert").forEach((el) => {
+      if (el) {
+        try {
+          new bootstrap.Alert(el).close();
+        } catch (e) {
+          // Ignore errors
+        }
+      }
+    });
+  }, 4000);
+</script>
+
+{% endblock %}
