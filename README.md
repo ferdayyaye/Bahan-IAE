@@ -1569,13 +1569,11 @@ Jika mengalami kendala:
 
 ## 👥 Anggota & Peran
 
-| Nama Anggota | Peran               | Service/Fitur yang Dikerjakan |
-| ------------ | ------------------- | ----------------------------- |
-| Perdog       | Backend Developer   | User Service                  |
-| Kenot        | Backend Developer   | Transaction Service           |
-| Sarip        | Backend Developer   | Notification Service          |
-| Anggota 4    | Backend Developer   | Report Service                |
-| Anggota 5    | DevOps / Integrator | API Gateway & Deployment      |
+| Nama Anggota                     | Peran                     | Service/Fitur yang Dikerjakan                          |
+| -------------------------------- | ------------------------- | ------------------------------------------------------ |
+| Ferdiansyah Adi Saputra | Backend Developer         | User Service, Transaction Service, & Notification Service       |
+| Kennteh Bryan      | Frontend Developer         | Report Service, Dashboard, Js, Css                 |
+| Syarief Saleh Madhy | DevOps / Integrator       | API Gateway, Deployment, & integrasi antar service   |
 
 ---
 
